@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Proyecto de Vida y Mis Sueños</title>
+  <style>
+    /* Paleta de colores solicitada:
+       #00FFFF, #8A2BE2, #9932CC, #00CED1, #FFFACD, #D87093, #F5DEB3
+    */
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #FFFACD; /* Fondo LemonChiffon suave */
+      color: #333333;
+      line-height: 1.6;
+    }
+
+    /* Navegación Header */
+    header {
+      background: linear-gradient(135deg, #8A2BE2, #9932CC);
+      color: #FFFACD;
+      padding: 2rem 1rem;
+      text-align: center;
+      border-bottom: 5px solid #00FFFF;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    header p {
+      font-size: 1.2rem;
+      color: #00FFFF;
+      font-weight: 500;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 1.5rem;
+    }
+
+    /* Botones Redondeados */
+    .btn {
+      background-color: #00CED1;
+      color: #ffffff;
+      padding: 10px 22px;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 25px; /* Bordes redondeados */
+      border: 2px solid #00FFFF;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .btn:hover {
+      background-color: #D87093;
+      border-color: #FFFACD;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Contenedor Principal */
+    .container {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .section {
+      background-color: #ffffff;
+      border-radius: 15px;
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 5px 15px rgba(138, 43, 226, 0.08);
+      border-left: 8px solid #8A2BE2;
+    }
+
+    .section-title {
+      color: #8A2BE2;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #F5DEB3;
+      padding-bottom: 0.5rem;
+    }
+
+    /* Tarjetas e Imágenes Layout */
+    .grid-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .grid-content {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .img-box {
+      width: 100%;
+      text-align: center;
+    }
+
+    .img-box img {
+      width: 100%;
+      max-width: 450px;
+      height: auto;
+      border-radius: 15px;
+      border: 4px solid #00CED1;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease;
+    }
+
+    .img-box img:hover {
+      transform: scale(1.02);
+    }
+
+    /* Listas y Estilos Generales */
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    ul li {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 0.8rem;
+    }
+
+    ul li::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      color: #D87093;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    /* Sección de Ejemplo (Laura) */
+    .example-card {
+      background-color: #FFFACD;
+      border: 2px dashed #9932CC;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .example-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .sub-card {
+      background: white;
+      padding: 1.2rem;
+      border-radius: 12px;
+      border-top: 4px solid #D87093;
+    }
+
+    .sub-card h4 {
+      color: #9932CC;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Frase Motivadora */
+    .quote-section {
+      background: linear-gradient(135deg, #D87093, #8A2BE2);
+      color: #FFFACD;
+      text-align: center;
+      padding: 3rem 2rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      margin-bottom: 2.5rem;
+    }
+
+    .quote-title {
+      font-size: 1.5rem;
+      color: #00FFFF;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .quote-text {
+      font-size: 1.8rem;
+      font-style: italic;
+      font-weight: bold;
+      line-height: 1.4;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Pie de página */
+    footer {
+      background-color: #8A2BE2;
+      color: #F5DEB3;
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      border-top: 4px solid #00CED1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navegación Encabezado -->
+  <header>
+    <h1>Mi Proyecto de Vida y Mis Sueños</h1>
+    <p>Construyendo el camino hacia mis metas personales y profesionales</p>
+    <nav>
+      <a href="#concepto" class="btn">¿Qué es?</a>
+      <a href="#caracteristicas" class="btn">Características</a>
+      <a href="#importancia" class="btn">Importancia</a>
+      <a href="#ejemplo" class="btn">Ejemplo Real</a>
+      <a href="index1.html" class="btn">Linea de Tiempo</a>
+      <a href="#frase" class="btn">Frase Motivacional</a>
+    </nav>
+  </header>
+
+  <div class="container">
+
+    <!-- 1. ¿Qué es un Proyecto de Vida? -->
+    <section id="concepto" class="section">
+      <h2 class="section-title">¿Qué es un Proyecto de Vida?</h2>
+      <div class="grid-content">
+        <div>
+          <p>Un <strong>proyecto de vida</strong> es un plan personal a largo o mediano plazo que se piensa seguir a través de los años. Se diseña con el fin de cumplir determinados objetivos o metas concretas y se basa en gustos personales, valores o habilidades.</p>
+          <br>
+          <p>Abarca aspectos fundamentales como la carrera universitaria, el trabajo, las relaciones de pareja o la formación de una familia. Este proyecto suele comenzar a definirse al alcanzar cierta madurez, alrededor de los 20 años, cuando la persona comienza a identificar sus intereses, motivaciones y desafíos.</p>
+        </div>
+        <div class="img-box">
+          <img src="1.png" alt="1.png - Estudiando e imaginando el futuro">
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Características Principales -->
+    <section id="caracteristicas" class="section">
+      <h2 class="section-title">Características Principales</h2>
+      <div class="grid-content">
+        <div class="img-box">
+          <img src="2.png" alt="2.png - Sueños y planificación integral">
+        </div>
+        <div>
+          <ul>
+            <li><strong>Personal y único:</strong> Refleja la identidad, los valores, los gustos y los talentos particulares de cada individuo.</li>
+            <li><strong>Dinámico y flexible:</strong> Se adapta a los cambios, el crecimiento personal y las nuevas circunstancias a lo largo del tiempo.</li>
+            <li><strong>Integral:</strong> Considera las diferentes áreas de la persona, como la salud, la familia, la educación, el trabajo y las relaciones sociales.</li>
+            <li><strong>Orientado en plazos:</strong> Define objetivos claros a corto (acciones inmediatas), mediano (metas de mayor esfuerzo) y largo plazo (aspiraciones mayores).</li>
+            <li><strong>Realista y coherente:</strong> Se basa en un ejercicio de autoconciencia que evalúa tanto las capacidades propias como las oportunidades del entorno.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ¿Por qué es importante tener un proyecto de vida? -->
+    <section id="importancia" class="section">
+      <h2 class="section-title">¿Por qué es importante tener un proyecto de vida?</h2>
+      <div class="grid-content">
+        <div>
+          <p>Tener un plan trazado nos permite conducir nuestras acciones con claridad y propósito. Sus principales beneficios son:</p>
+          <br>
+          <ul>
+            <li>Permite definir <strong>objetivos y metas claras</strong> para tomar decisiones acertadas.</li>
+            <li>Ayuda a identificar aquello que la persona realmente quiere para su vida.</li>
+            <li>Fomenta el <strong>autoconocimiento</strong> y la autogestión.</li>
+            <li>Acerca estrategias y recursos para lograr las metas personales.</li>
+            <li>Facilita alinear las decisiones con los valores, intereses y características individuale.</li>
+            <li>Permite visualizar un futuro y establecer un propósito de vida, respondiendo a: <em>¿Cómo quiero ser? ¿Dónde quiero estar? ¿Con quién?</em></li>
+            <li>Focaliza la energía en los objetivos personales, ayudando a mantener la concentración y evitar distracciones.</li>
+          </ul>
+        </div>
+        <div class="img-box">
+          <img src="3.png" alt="3.png - Compartiendo metas e ideales">
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Ejemplo Práctico (johana) -->
+    <section id="ejemplo" class="section">
+      <h2 class="section-title">Ejemplo de Proyecto de Vida</h2>
+      
+      <div class="example-card">
+        <h3>Caso de Estudio: Proyecto de Vida de johana</h3>
+        
+        <div class="example-grid">
+          <div class="sub-card">
+            <h4>¿Quién SOY?</h4>
+            <p><strong>Nombre:</strong> johana (18 años, Bogotá).</p>
+            <p><strong>Perfil:</strong> Responsable, creativa, le gusta ayudar a los demás. Interesada en la tecnología y el cuidado del medio ambiente.</p>
+          </div>
+
+          <div class="sub-card">
+            <h4>MIS SUEÑOS</h4>
+            <p>Ser ingeniera de sistemas y crear proyectos con Arduino que ayuden a su colegio y comunidad. Darle una casa propia a su familia y viajar para conocer otros países.</p>
+          </div>
+
+          <div class="sub-card">
+            <h4>MI MISIÓN</h4>
+            <p>Aprender todos los días, ser mejor persona y usar el conocimiento para resolver problemas reales.</p>
+          </div>
+
+          <div class="sub-card">
+            <h4>MIS VALORES</h4>
+            <p>Respeto, responsabilidad, honestidad, perseverancia y solidaridad.</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;" class="sub-card">
+          <h4>MIS METAS</h4>
+          <ul style="margin-top: 0.5rem;">
+            <li><strong>Corto Plazo (este año):</strong> Pasar todas las materias con buenas notas, terminar el proyecto de Arduino del sistema de riego, mejorar en inglés y ser más organizada.</li>
+            <li><strong>Medio Plazo (1 a 5 años):</strong> Graduarse de bachillerato, entrar a la universidad (SENA o Universidad Distrital), aprender programación y robótica, y conseguir su primer trabajo.</li>
+          </ul>
+        </div>
+
+        <div style="margin-top: 1.5rem;" class="sub-card">
+          <h4>¿Qué voy a hacer para lograrlo?</h4>
+          <ul>
+            <li>Estudiar 1 hora extra al día.</li>
+            <li>No dejar tareas para última hora.</li>
+            <li>Alejarse de malas amistades y vicios.</li>
+            <li>Pedir ayuda a profesores y familia cuando lo necesite.</li>
+            <li>No rendirse aunque algo salga mal.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="example-grid" style="margin-top: 1.5rem;">
+        <div class="img-box">
+          <img src="4.png" alt="4.png - Trabajando en equipo y estudiando">
+        </div>
+        <div class="img-box">
+          <img src="5.png" alt="5.png - Apoyo de amigos y comunidad">
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Frase Emotiva -->
+    <section id="frase" class="quote-section">
+      <div class="quote-title">MI FRASE MOTIVADORA</div>
+      <p class="quote-text">“Si riegas tus sueños todos los días, como a una planta, algún día florecerán”</p>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>Diseño Web - Proyecto de Vida y Mis Sueños | Realizado con HTML & CSS</p>
+  </footer>
+
+</body>
+</html>
