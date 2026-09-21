@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Proyecto de Vida Individual - Registro y Línea de Tiempo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+    <!-- Chart.js for Wheel of Life -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fffbe1',
+                            100: '#fef3c7',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            900: '#451a03',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0b0f19 0%, #1a102f 25%, #2a0833 50%, #4a1038 75%, #18051b 100%);
+            background-attachment: fixed;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .sun-glow {
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.35) 0%, rgba(245, 158, 11, 0.12) 40%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: pulseGlow 10s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.6; }
+            100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.95; }
+        }
+
+        .ribbon-banner {
+            position: relative;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            color: #0f172a;
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.5), 0 0 25px rgba(245, 158, 11, 0.2);
+            border-radius: 16px;
+            border: 2px solid #fef3c7;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-card-light {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .milestone-pin {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+        }
+
+        .milestone-pin:hover {
+            transform: scale(1.25) translateY(-8px);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.8);
+        }
+
+        .milestone-pin.completed {
+            box-shadow: 0 0 20px #10b981, 0 0 35px #059669;
+            background: linear-gradient(135deg, #10b981, #047857) !important;
+            border-color: #a7f3d0 !important;
+            color: #ffffff !important;
+        }
+
+        .milestone-pin.active-next {
+            animation: bounceGlow 2.2s infinite ease-in-out;
+        }
+
+        @keyframes bounceGlow {
+            0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 0 18px #f59e0b; }
+            50% { transform: translateY(-10px) scale(1.12); box-shadow: 0 0 30px #fbbf24; }
+        }
+
+        .path-line-dash {
+            stroke-dasharray: 10;
+            animation: dash 35s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -200;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(245, 158, 11, 0.6);
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(245, 158, 11, 0.9);
+        }
+
+        .avatar-option.selected {
+            border-color: #f59e0b !important;
+            background-color: rgba(245, 158, 11, 0.2);
+            transform: scale(1.1);
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body class="relative flex flex-col justify-between min-h-screen p-3 md:p-6 select-none overflow-x-hidden">
+
+    <!-- Sun glow behind mountains -->
+    <div class="sun-glow"></div>
+
+    <div id="registration-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 transition-all duration-500">
+        <div class="glass-card max-w-xl w-full rounded-3xl p-6 md:p-8 border border-amber-500/30 shadow-2xl relative overflow-hidden">
+            <!-- Decorative Sunset Accent -->
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-gradient-to-br from-amber-500/30 to-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-slate-950 text-2xl shadow-lg shadow-amber-500/30">
+                    <i class="fa-solid fa-mountain-sun"></i>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-black text-white font-serif tracking-wide">Bienvenido a tu Proyecto de Vida</h2>
+                <p class="text-xs md:text-sm text-slate-300 mt-1">Registra tus datos para personalizar tu viaje hacia la Cumbre de Logros</p>
+            </div>
+
+            <form id="registration-form" onsubmit="handleRegistration(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">Nombre Completo *</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="reg-name" required placeholder="Ej: María Fernanda Gómez" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-400 transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">Correo Electrónico *</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="email" id="reg-email" required placeholder="tu@correo.com" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-400 transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">Fecha Inicio del Plan</label>
+                        <div class="relative">
+                            <input type="date" id="reg-start-date" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-400">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">Mi Propósito o Lema de Vida</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-quote-left absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="reg-motto" placeholder="Ej: Vencer mis límites con propósito, amor y constancia" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-400 transition-all">
+                    </div>
+                </div>
+
+                <!-- Avatar Selection -->
+                <div>
+                    <label class="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-2">Selecciona tu Avatar de Explorador/a</label>
+                    <div class="flex items-center justify-center gap-3">
+                        <button type="button" onclick="selectAvatar('fa-user-astronaut')" class="avatar-option selected w-12 h-12 rounded-2xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-amber-400 text-xl transition-all">
+                            <i class="fa-solid fa-user-astronaut"></i>
+                        </button>
+                        <button type="button" onclick="selectAvatar('fa-compass')" class="avatar-option w-12 h-12 rounded-2xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-cyan-400 text-xl transition-all">
+                            <i class="fa-solid fa-compass"></i>
+                        </button>
+                        <button type="button" onclick="selectAvatar('fa-graduation-cap')" class="avatar-option w-12 h-12 rounded-2xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-emerald-400 text-xl transition-all">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </button>
+                        <button type="button" onclick="selectAvatar('fa-heart-pulse')" class="avatar-option w-12 h-12 rounded-2xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-rose-400 text-xl transition-all">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </button>
+                        <button type="button" onclick="selectAvatar('fa-crown')" class="avatar-option w-12 h-12 rounded-2xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-purple-400 text-xl transition-all">
+                            <i class="fa-solid fa-crown"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm uppercase tracking-widest shadow-xl shadow-amber-500/20 transition-all transform hover:scale-[1.02]">
+                    <i class="fa-solid fa-route mr-2"></i> Comenzar mi Camino
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <header class="relative z-10 max-w-6xl mx-auto w-full text-center mt-2 mb-6">
+        <!-- Top Personal Bar -->
+        <div class="flex items-center justify-between mb-4 px-2">
+            <div id="user-profile-badge" class="glass-card rounded-2xl px-4 py-2 flex items-center gap-3 border border-amber-500/30 cursor-pointer hover:border-amber-400 transition-all" onclick="openRegistrationModal(true)">
+                <div id="badge-avatar-icon" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-slate-950 text-base font-bold shadow-md">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                </div>
+                <div class="text-left">
+                    <p id="badge-user-name" class="text-xs font-black text-amber-300">Explorador/a</p>
+                    <p id="badge-user-email" class="text-[10px] text-slate-400">Clic para cambiar o editar usuario</p>
+                </div>
+                <i class="fa-solid fa-user-pen text-xs text-amber-400/70 ml-1"></i>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="openRegistrationModal(true)" class="px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket text-amber-400"></i> <span class="hidden sm:inline">Cambiar Usuario</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="ribbon-banner px-6 py-5 md:px-14 md:py-7 inline-block w-full max-w-3xl transform transition-transform hover:scale-[1.01]">
+            <h1 id="dynamic-title" class="text-2xl md:text-5xl font-extrabold tracking-wide uppercase text-slate-900 font-serif drop-shadow-sm">
+                Mi Proyecto de Vida Individual
+            </h1>
+            <div class="flex items-center justify-center gap-3 mt-3">
+                <span class="h-0.5 w-10 bg-amber-500 rounded"></span>
+                <p id="dynamic-motto" class="text-xs md:text-sm font-bold tracking-widest text-amber-600 uppercase">
+                    Dreams • Action • Growth • Legacy
+                </p>
+                <span class="h-0.5 w-10 bg-amber-500 rounded"></span>
+            </div>
+        </div>
+
+        <!-- Global Progress & Action Toolbar -->
+        <div class="mt-6 max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Progress Bar -->
+            <div class="glass-card rounded-2xl p-3 flex items-center gap-4 w-full md:w-auto flex-1">
+                <div class="text-xs font-extrabold text-amber-300 pl-2 whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-amber-400 text-lg animate-spin-slow"></i>
+                    <span>Progreso del Camino:</span>
+                </div>
+                <div class="w-full bg-slate-900/90 rounded-full h-4 overflow-hidden border border-slate-700/60 relative">
+                    <div id="overall-progress" class="bg-gradient-to-r from-amber-500 via-emerald-400 to-cyan-400 h-full rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                </div>
+                <span id="progress-percentage" class="text-xs font-black text-emerald-400 pr-2 min-w-[45px]">0%</span>
+            </div>
+
+            <!-- Action Buttons Toolbar -->
+            <div class="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
+                <button onclick="openModalTab('rueda')" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs tracking-wider uppercase border border-amber-500/30 flex items-center gap-2 transition-all shadow-md hover:scale-105">
+                    <i class="fa-solid fa-chart-pie text-sm"></i> Rueda de Vida
+                </button>
+                <button onclick="openModalTab('ikigai')" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 font-extrabold text-xs tracking-wider uppercase border border-rose-500/30 flex items-center gap-2 transition-all shadow-md hover:scale-105">
+                    <i class="fa-solid fa-bullseye text-sm"></i> Ikigai
+                </button>
+                <button onclick="openQuestionnaireModal()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all transform hover:scale-105">
+                    <i class="fa-solid fa-clipboard-question text-base"></i> Guía Completa (14 Etapas)
+                </button>
+                <button onclick="exportToPrint()" class="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs tracking-wider uppercase shadow-md flex items-center gap-2 transition-all hover:scale-105" title="Imprimir / Exportar PDF">
+                    <i class="fa-solid fa-file-pdf text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-10 max-w-6xl mx-auto w-full my-auto py-2">
+        
+        <!-- Large Scrollable Canvas Container -->
+        <div class="relative w-full rounded-3xl glass-card overflow-hidden border border-white/20 shadow-2xl flex flex-col items-center">
+            
+            <!-- Filter Bar for Timeline Phases -->
+            <div class="w-full bg-slate-950/60 border-b border-white/10 px-4 py-3 flex items-center justify-between overflow-x-auto gap-2 text-xs">
+                <span class="font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-filter text-amber-400 mr-1"></i> Filtrar Fase:</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="filterPhase('all')" class="phase-btn active px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold whitespace-nowrap">Todas (14)</button>
+                    <button onclick="filterPhase(1)" class="phase-btn px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold whitespace-nowrap">1. Cimientos</button>
+                    <button onclick="filterPhase(2)" class="phase-btn px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold whitespace-nowrap">2. Formación</button>
+                    <button onclick="filterPhase(3)" class="phase-btn px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold whitespace-nowrap">3. Desafíos</button>
+                    <button onclick="filterPhase(4)" class="phase-btn px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold whitespace-nowrap">4. Carrera</button>
+                    <button onclick="filterPhase(5)" class="phase-btn px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold whitespace-nowrap">5. Bienestar</button>
+                    <button onclick="filterPhase(6)" class="phase-btn px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold whitespace-nowrap">6. Impacto</button>
+                    <button onclick="filterPhase(7)" class="phase-btn px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold whitespace-nowrap">7. Cumbre</button>
+                </div>
+            </div>
+
+            <!-- Extended Timeline Map Container (14 Milestones) -->
+            <div class="relative w-full aspect-[16/22] sm:aspect-[16/18] md:aspect-[16/14] min-h-[900px] overflow-hidden">
+                
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/50 to-transparent z-0"></div>
+                
+                <!-- SVG Mountains and Scenic Trail Background -->
+                <svg class="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none" viewBox="0 0 1000 1400" preserveAspectRatio="none">
+                    <path d="M0,1200 L150,950 L300,1100 L500,800 L700,1050 L850,750 L1000,900 L1000,1400 L0,1400 Z" fill="#3b0764" />
+                    <path d="M0,1000 L250,750 L450,900 L650,600 L850,800 L1000,550 L1000,1400 L0,1400 Z" fill="#1e1b4b" />
+                    <path d="M0,700 L200,450 L400,600 L600,300 L800,500 L1000,200 L1000,1400 L0,1400 Z" fill="#022c22" opacity="0.7" />
+                </svg>
+
+                <!-- Long Curved Winding Path -->
+                <svg class="absolute inset-0 w-full h-full z-0" viewBox="0 0 1000 1400" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="longPathGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#10b981" />
+                            <stop offset="25%" stop-color="#38bdf8" />
+                            <stop offset="50%" stop-color="#f59e0b" />
+                            <stop offset="75%" stop-color="#ec4899" />
+                            <stop offset="100%" stop-color="#fbbf24" />
+                        </linearGradient>
+                        <filter id="pathGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="5" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+
+                    <!-- Winding Pathway SVG -->
+                    <path id="extended-path" d="
+                        M 80,1320 
+                        C 180,1300 240,1220 200,1140 
+                        C 160,1060 280,1010 380,1040 
+                        C 500,1070 580,980 500,900 
+                        C 420,820 280,830 220,740 
+                        C 160,650 300,580 420,620 
+                        C 540,660 680,630 640,520 
+                        C 600,410 420,440 480,340 
+                        C 540,240 700,270 760,180 
+                        C 820,90 880,80 920,50" 
+                        fill="none" stroke="url(#longPathGradient)" stroke-width="7" filter="url(#pathGlow)" stroke-linecap="round" class="path-line-dash"/>
+
+                    <path d="
+                        M 80,1320 
+                        C 180,1300 240,1220 200,1140 
+                        C 160,1060 280,1010 380,1040 
+                        C 500,1070 580,980 500,900 
+                        C 420,820 280,830 220,740 
+                        C 160,650 300,580 420,620 
+                        C 540,660 680,630 640,520 
+                        C 600,410 420,440 480,340 
+                        C 540,240 700,270 760,180 
+                        C 820,90 880,80 920,50" 
+                        fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 10" opacity="0.8"/>
+                </svg>
+
+                <!-- Interactive Nodes Container -->
+                <div id="nodes-container" class="relative w-full h-full z-10"></div>
+
+                <!-- Summit Flag Signboard -->
+                <div class="absolute top-4 right-4 md:top-8 md:right-10 z-20 transform rotate-1 hover:rotate-0 transition-transform cursor-pointer" onclick="openModal(14)">
+                    <div class="glass-card-light border-2 border-amber-300/80 rounded-2xl px-5 py-3 text-center shadow-xl shadow-amber-500/20 hover:border-amber-300">
+                        <div class="text-[10px] uppercase font-black text-amber-300 tracking-widest">Meta Final</div>
+                        <div class="text-sm md:text-base font-black text-white flex items-center gap-2">
+                            <i class="fa-solid fa-flag-checkered text-amber-400 text-lg animate-bounce"></i> CUMBRE DE LOGROS
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explorer Badge Visual Indicator -->
+                <div class="absolute bottom-4 right-4 z-20 flex items-center gap-3 glass-card rounded-2xl p-3 border border-amber-500/30">
+                    <div id="map-avatar-icon" class="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-500 via-pink-500 to-indigo-500 flex items-center justify-center text-white text-xl shadow-lg">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <div>
+                        <p id="map-user-greeting" class="text-xs font-semibold text-slate-300">Navegante del Destino</p>
+                        <p id="explorer-status-text" class="text-xs font-extrabold text-amber-400">14 Estaciones por Conquistar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="relative z-10 text-center my-6">
+        <div class="inline-block glass-card rounded-full px-8 py-3 border border-white/10">
+            <h2 class="text-xs md:text-sm font-extrabold text-slate-200 tracking-widest uppercase flex items-center gap-3">
+                <i class="fa-solid fa-mountain text-amber-400 text-base"></i>
+                EXPLORANDO MI FUTURO CON PROPÓSITO, VALORES Y ACCIÓN
+                <i class="fa-solid fa-compass text-amber-400 text-base"></i>
+            </h2>
+        </div>
+    </footer>
+
+    <div id="milestone-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 md:p-6 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card max-w-2xl w-full rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl transform scale-95 transition-all duration-300 relative max-h-[92vh] overflow-y-auto" id="modal-content">
+            
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <!-- Modal Header -->
+            <div class="flex items-center gap-4 mb-5">
+                <div id="modal-icon-bg" class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-2xl text-amber-400 shadow-inner shrink-0">
+                    <i id="modal-icon" class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <span id="modal-step" class="text-xs font-bold text-amber-400 tracking-widest uppercase">Etapa 1 de 14</span>
+                    <h3 id="modal-title" class="text-xl md:text-2xl font-black text-white">Nombre de Etapa</h3>
+                    <p id="modal-phase-tag" class="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider mt-0.5">Fase 1: Cimientos</p>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <p id="modal-desc" class="text-xs md:text-sm text-slate-300 leading-relaxed mb-5 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+                Descripción detallada de la etapa.
+            </p>
+
+            <!-- Extended Questions Section -->
+            <div class="mb-5 bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-500/30 rounded-2xl p-4">
+                <div class="flex items-center justify-between text-amber-300 font-bold text-xs uppercase tracking-wider mb-3">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-brain text-sm"></i> Preguntas de Reflexión Guiada (Coaching)</span>
+                    <span id="modal-question-count" class="text-[10px] text-amber-400/80">0/3 respondidas</span>
+                </div>
+                <div id="modal-questions-list" class="space-y-4">
+                    <!-- Dynamic Questions generated here -->
+                </div>
+            </div>
+
+            <!-- Inputs for Goal, Date and Completion -->
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Mi Meta SMART Principal en esta etapa:</label>
+                    <textarea id="modal-goal-input" rows="2" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-xs md:text-sm text-slate-100 focus:outline-none focus:border-amber-400 transition-colors placeholder-slate-500" placeholder="Ej: Obtener mi certificación internacional en gestión de proyectos antes de fin de año..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Fecha Límite Objetivo:</label>
+                        <input type="date" id="modal-date-input" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Estado de Hito:</label>
+                        <button id="modal-status-btn" onclick="toggleStatus()" class="w-full py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 bg-slate-800 text-slate-300 border border-slate-700">
+                            <i class="fa-regular fa-circle"></i> Pendiente
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+                <div class="flex gap-2">
+                    <button id="prev-step-btn" onclick="navigateStep(-1)" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+                    <button id="next-step-btn" onclick="navigateStep(1)" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-white/10 transition-colors">Cancelar</button>
+                    <button onclick="saveMilestone()" class="px-6 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar Progreso
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questionnaire Modal -->
+    <div id="questionnaire-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 md:p-6 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card max-w-4xl w-full rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl transform scale-95 transition-all duration-300 relative max-h-[92vh] flex flex-col" id="questionnaire-content">
+            
+            <button onclick="closeQuestionnaireModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-2xl text-amber-400 shrink-0">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl md:text-2xl font-black text-white">Guía de Reflexión Integral (14 Etapas)</h3>
+                    <p class="text-xs text-slate-300">Escribe y gestiona tus respuestas de autoconocimiento y proyección para todo tu mapa de vida.</p>
+                </div>
+            </div>
+
+            <!-- Scrollable Questions Container -->
+            <div id="questionnaire-body" class="overflow-y-auto pr-2 space-y-6 flex-1 my-3">
+                <!-- Filled dynamically -->
+            </div>
+
+            <div class="pt-4 border-t border-white/10 flex items-center justify-between">
+                <span class="text-xs text-slate-400"><i class="fa-solid fa-shield-halved text-emerald-400"></i> Guardado automático en perfil activo</span>
+                <button onclick="saveAllQuestionnaireAnswers()" class="px-6 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20 transition-all transform hover:scale-105">
+                    <i class="fa-solid fa-check-double mr-1"></i> Guardar Todas las Reflexiones
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tools Modal (Wheel of Life & Ikigai) -->
+    <div id="tools-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 md:p-6 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card max-w-4xl w-full rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl transform scale-95 transition-all duration-300 relative max-h-[92vh] flex flex-col" id="tools-content">
+            
+            <button onclick="closeToolsModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <!-- Modal Nav Tabs -->
+            <div class="flex items-center gap-3 border-b border-white/10 pb-4 mb-4">
+                <button id="tab-btn-rueda" onclick="switchToolsTab('rueda')" class="px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-amber-500 text-slate-950">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Rueda de la Vida
+                </button>
+                <button id="tab-btn-ikigai" onclick="switchToolsTab('ikigai')" class="px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    <i class="fa-solid fa-bullseye mr-1"></i> Matriz Ikigai
+                </button>
+            </div>
+
+            <!-- Tab Content: Rueda de la Vida -->
+            <div id="tab-content-rueda" class="flex-1 overflow-y-auto space-y-4">
+                <p class="text-xs text-slate-300">Evalúa tu satisfacción actual en cada área clave de tu vida (1 al 10) para identificar desequilibrios y prioridades:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-200 mb-1">
+                                <span>1. Salud y Energía</span><span id="val-salud" class="text-amber-400">7/10</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="7" id="range-salud" oninput="updateWheel()" class="w-full accent-amber-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-200 mb-1">
+                                <span>2. Carrera y Profesión</span><span id="val-carrera" class="text-amber-400">8/10</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="8" id="range-carrera" oninput="updateWheel()" class="w-full accent-amber-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-200 mb-1">
+                                <span>3. Finanzas y Libertad</span><span id="val-finanzas" class="text-amber-400">6/10</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="6" id="range-finanzas" oninput="updateWheel()" class="w-full accent-amber-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-200 mb-1">
+                                <span>4. Relaciones y Familia</span><span id="val-relaciones" class="text-amber-400">8/10</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="8" id="range-relaciones" oninput="updateWheel()" class="w-full accent-amber-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-200 mb-1">
+                                <span>5. Desarrollo Personal</span><span id="val-desarrollo" class="text-amber-400">9/10</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="9" id="range-desarrollo" oninput="updateWheel()" class="w-full accent-amber-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-200 mb-1">
+                                <span>6. Espiritualidad / Propósito</span><span id="val-espiritual" class="text-amber-400">7/10</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="7" id="range-espiritual" oninput="updateWheel()" class="w-full accent-amber-500">
+                        </div>
+                    </div>
+
+                    <!-- Radar Chart Container -->
+                    <div class="w-full h-[280px] flex items-center justify-center p-2 bg-slate-900/80 rounded-2xl border border-slate-800">
+                        <canvas id="wheelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Ikigai Matrix -->
+            <div id="tab-content-ikigai" class="hidden flex-1 overflow-y-auto space-y-4">
+                <p class="text-xs text-slate-300">Completa tu matriz Ikigai para descubrir la intersección de tu propósito de vida:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-rose-950/30 p-4 rounded-2xl border border-rose-500/30 space-y-2">
+                        <h4 class="text-xs font-bold text-rose-300 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-heart"></i> 1. Lo que Amas</h4>
+                        <textarea id="ikigai-lo-que-amas" rows="3" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-400" placeholder="¿Qué actividades te apasionan e inspiran sin importar la hora?..."></textarea>
+                    </div>
+                    <div class="bg-indigo-950/30 p-4 rounded-2xl border border-indigo-500/30 space-y-2">
+                        <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-star"></i> 2. En lo que eres Bueno/a</h4>
+                        <textarea id="ikigai-talentos" rows="3" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-400" placeholder="¿Cuáles son tus talentos, fortalezas y destrezas destacadas?..."></textarea>
+                    </div>
+                    <div class="bg-amber-950/30 p-4 rounded-2xl border border-amber-500/30 space-y-2">
+                        <h4 class="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-globe"></i> 3. Lo que el Mundo Necesita</h4>
+                        <textarea id="ikigai-mundo" rows="3" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="¿Qué problemas de la sociedad o tu entorno te motiva resolver?..."></textarea>
+                    </div>
+                    <div class="bg-emerald-950/30 p-4 rounded-2xl border border-emerald-500/30 space-y-2">
+                        <h4 class="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar"></i> 4. Por lo que te Pueden Pagar</h4>
+                        <textarea id="ikigai-profesion" rows="3" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-400" placeholder="¿Qué servicios o habilidades tuyas tienen alto valor en el mercado?..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-white/10 flex items-center justify-end">
+                <button onclick="saveToolsData()" class="px-6 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg transition-all transform hover:scale-105">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar Evaluación
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User Profile State
+        let currentUserProfile = {
+            name: "",
+            email: "",
+            motto: "DREAMS • ACTION • GROWTH • LEGACY",
+            startDate: new Date().toISOString().split('T')[0],
+            avatar: "fa-user-astronaut"
+        };
+
+        // 14 Comprehensive Lifecycle Milestones
+        const milestonesData = [
+            {
+                id: 1, phase: 1, phaseName: "Fase 1: Cimientos y Autoconocimiento", title: "Origen, Raíces y Valores", icon: "fa-seedling", x: 8, y: 94,
+                desc: "Reconocimiento de tu historia personal, tus valores innegociables y las bases emocionales sobre las cuales construyes tu futuro.",
+                defaultGoal: "Identificar mis 5 valores fundamentales y escribir mi declaración de principios personal.", completed: false, targetDate: "2026-06-30",
+                questions: [
+                    { id: "q1_1", text: "¿Cuáles son los 5 valores innegociables que rigen tu vida diaria?", answer: "" },
+                    { id: "q1_2", text: "¿Qué lección valiosa de tu pasado o crianza te da fuerza en momentos difíciles?", answer: "" },
+                    { id: "q1_3", text: "¿Cómo defines a tu 'yo ideal' en una sola frase inspiradora?", answer: "" }
+                ]
+            },
+            {
+                id: 2, phase: 1, phaseName: "Fase 1: Cimientos y Autoconocimiento", title: "Fortalezas y Superación de Miedos", icon: "fa-shield-halved", x: 20, y: 81,
+                desc: "Análisis profundo de tus virtudes, talentos naturales y los bloqueos o miedos limitantes que estás decidido a vencer.",
+                defaultGoal: "Superar el miedo a hablar en público y convertir mi creatividad en una fortaleza clave.", completed: false, targetDate: "2026-11-15",
+                questions: [
+                    { id: "q2_1", text: "¿Cuáles son tus 3 mayores fortalezas naturales según las personas que mejor te conocen?", answer: "" },
+                    { id: "q2_2", text: "¿Qué temor o creencia limitante te ha frenado más en el pasado?", answer: "" },
+                    { id: "q2_3", text: "¿Qué acción concreta realizarás este mes para salir de tu zona de confort?", answer: "" }
+                ]
+            },
+            {
+                id: 3, phase: 2, phaseName: "Fase 2: Formación y Educación", title: "Educación y Habilidades Clave", icon: "fa-graduation-cap", x: 38, y: 74,
+                desc: "Desarrollo de conocimientos académicos, competencias técnicas avanzadas e idiomas para potenciar tu valor personal.",
+                defaultGoal: "Culminar mis estudios o certificación profesional con honores.", completed: false, targetDate: "2027-05-30",
+                questions: [
+                    { id: "q3_1", text: "¿Qué área del conocimiento te apasiona tanto que estudiarías gratis?", answer: "" },
+                    { id: "q3_2", text: "¿Qué habilidad técnica o profesional te abrirá las mayores puertas en los próximos 3 años?", answer: "" },
+                    { id: "q3_3", text: "¿Qué hábito diario de lectura o estudio implementarás para mantenerte actualizado?", answer: "" }
+                ]
+            },
+            {
+                id: 4, phase: 2, phaseName: "Fase 2: Formación y Educación", title: "Mentores y Redes de Aprendizaje", icon: "fa-people-group", x: 50, y: 64,
+                desc: "Búsqueda activa de modelos a seguir, asesores con experiencia y comunidades que aceleren tu crecimiento.",
+                defaultGoal: "Conectar con al menos 2 mentores referentes en mi sector de interés.", completed: false, targetDate: "2027-10-20",
+                questions: [
+                    { id: "q4_1", text: "¿Quiénes son tus 3 mayores referentes o modelos a seguir y por qué los admiras?", answer: "" },
+                    { id: "q4_2", text: "¿Qué cualidades buscas en un mentor que guíe tu desarrollo?", answer: "" },
+                    { id: "q4_3", text: "¿En qué grupos o comunidades profesionales puedes participar activamente?", answer: "" }
+                ]
+            },
+            {
+                id: 5, phase: 3, phaseName: "Fase 3: Primeras Experiencias y Desafíos", title: "Primeros Proyectos e Innovación", icon: "fa-lightbulb", x: 22, y: 53,
+                desc: "Creación y lanzamiento de tus primeras iniciativas, proyectos piloto o emprendimientos iniciales.",
+                defaultGoal: "Lanzar mi primer proyecto personal o prototipo de emprendimiento.", completed: false, targetDate: "2028-03-15",
+                questions: [
+                    { id: "q5_1", text: "¿Qué problema real de tu entorno te entusiasma resolver mediante una solución innovadora?", answer: "" },
+                    { id: "q5_2", text: "¿Qué recursos básicos necesitas para dar el primer paso con tu proyecto?", answer: "" },
+                    { id: "q5_3", text: "¿Cómo validarás si tu idea tiene un impacto positivo verdadero?", answer: "" }
+                ]
+            },
+            {
+                id: 6, phase: 3, phaseName: "Fase 3: Primeras Experiencias y Desafíos", title: "Resiliencia ante la Adversidad", icon: "fa-fire-burner", x: 42, y: 44,
+                desc: "Aprender a transformar los fracasos en aprendizaje y mantener la perseverancia frente a los obstáculos.",
+                defaultGoal: "Desarrollar inteligencia emocional para gestionar la incertidumbre.", completed: false, targetDate: "2028-08-30",
+                questions: [
+                    { id: "q6_1", text: "¿Cuál ha sido el obstáculo más grande que has superado y qué te enseñó sobre ti?", answer: "" },
+                    { id: "q6_2", text: "¿Qué estrategia utilizas cuando un proyecto no sale como lo planeaste?", answer: "" },
+                    { id: "q6_3", text: "¿Cómo mantienes la motivación en los momentos de baja energía?", answer: "" }
+                ]
+            },
+            {
+                id: 7, phase: 4, phaseName: "Fase 4: Consolidación Profesional", title: "Carrera, Liderazgo y Trabajo", icon: "fa-briefcase", x: 64, y: 37,
+                desc: "Consolidación de tu posición laboral o empresa propia, liderando equipos y marcando estándares de excelencia.",
+                defaultGoal: "Alcanzar un rol directivo de liderazgo o estabilizar mi empresa propia.", completed: false, targetDate: "2029-02-28",
+                questions: [
+                    { id: "q7_1", text: "¿Cómo imaginas tu rol profesional alcanzando su punto de mayor efectividad?", answer: "" },
+                    { id: "q7_2", text: "¿Qué estilo de liderazgo deseas ejercer con las personas a tu cargo?", answer: "" },
+                    { id: "q7_3", text: "¿Cuál es la propuesta de valor diferenciadora que entregas a tu industria?", answer: "" }
+                ]
+            },
+            {
+                id: 8, phase: 4, phaseName: "Fase 4: Consolidación Profesional", title: "Finanzas e Inversiones Inteligentes", icon: "fa-landmark", x: 48, y: 24,
+                desc: "Construcción de riqueza sostenible, diversificación de ingresos y libertad financiera.",
+                defaultGoal: "Crear un fondo de reserva de 6 meses y construir un portafolio de inversión.", completed: false, targetDate: "2029-09-15",
+                questions: [
+                    { id: "q8_1", text: "¿Qué cifra de ingresos mensuales te brindaría total tranquilidad financiera?", answer: "" },
+                    { id: "q8_2", text: "¿Qué vehículos de inversión prefieres utilizar?", answer: "" },
+                    { id: "q8_3", text: "¿Qué porcentaje de tus ingresos destinarás mensualmente al ahorro e inversión?", answer: "" }
+                ]
+            },
+            {
+                id: 9, phase: 5, phaseName: "Fase 5: Relaciones y Bienestar", title: "Salud Integral y Equilibrio", icon: "fa-heart-pulse", x: 76, y: 13,
+                desc: "Cuidado consciente de tu salud física, nutrición, descanso y bienestar psicológico.",
+                defaultGoal: "Mantener una rutina constante de ejercicio 4 veces por semana y meditación diaria.", completed: false, targetDate: "2030-03-30",
+                questions: [
+                    { id: "q9_1", text: "¿Qué hábitos alimenticios y de ejercicio garantizan tu máxima vitalidad?", answer: "" },
+                    { id: "q9_2", text: "¿Cómo cuidas tu paz mental frente al ajetreo y estrés?", answer: "" },
+                    { id: "q9_3", text: "¿Qué actividades al aire libre o hobbies recargan por completo tu energía?", answer: "" }
+                ]
+            },
+            {
+                id: 10, phase: 5, phaseName: "Fase 5: Relaciones y Bienestar", title: "Hogar, Familia y Vínculos Profundos", icon: "fa-house-chimney-window", x: 92, y: 3.5,
+                desc: "Creación de un espacio armónico de convivencia, nutrir relaciones afectivas primarias y construir un hogar cálido.",
+                defaultGoal: "Adquirir mi vivienda propia y dedicar tiempo de calidad weekly a mi familia.", completed: false, targetDate: "2030-11-20",
+                questions: [
+                    { id: "q10_1", text: "¿Cómo imaginas tu espacio de vida soñado y qué ambiente quieres respirar en él?", answer: "" },
+                    { id: "q10_2", text: "¿De qué manera fortaleces tus relaciones con las personas que más amas?", answer: "" },
+                    { id: "q10_3", text: "¿Qué tradiciones o momentos especiales te gusta compartir?", answer: "" }
+                ]
+            },
+            {
+                id: 11, phase: 6, phaseName: "Fase 6: Impacto y Trascendencia", title: "Contribución Social y Voluntariado", icon: "fa-hands-holding-child", x: 60, y: -2,
+                desc: "Devolver a la sociedad parte de tu éxito apoyando causas nobles, proyectos ecológicos o comunitarios.",
+                defaultGoal: "Apoyar activamente una fundación educativa o social mediante mi tiempo y recursos.", completed: false, targetDate: "2031-04-15",
+                questions: [
+                    { id: "q11_1", text: "¿Qué causa social o ambiental remueve tu fibra sensible y exige tu ayuda?", answer: "" },
+                    { id: "q11_2", text: "¿De qué forma tus talentos personales pueden aliviar carencias de otros?", answer: "" },
+                    { id: "q11_3", text: "¿Qué proyecto de voluntariado te comprometes a respaldar?", answer: "" }
+                ]
+            },
+            {
+                id: 12, phase: 6, phaseName: "Fase 6: Impacto y Trascendencia", title: "Mentoría y Formación de Nuevos Líderes", icon: "fa-award", x: 42, y: -8,
+                desc: "Convertirte en guía y facilitador para las nuevas generaciones, transmitiendo la sabiduría recopilada.",
+                defaultGoal: "Capacitar y apadrinar al menos a 5 jóvenes promesas en mi área de experiencia.", completed: false, targetDate: "2031-10-30",
+                questions: [
+                    { id: "q12_1", text: "¿Cuál es el consejo de vida más importante que compartirías a las futuras generaciones?", answer: "" },
+                    { id: "q12_2", text: "¿Cómo puedes facilitar el camino a quienes vienen detrás de ti?", answer: "" },
+                    { id: "q12_3", text: "¿Qué obras, libros o conocimientos te gustaría dejar plasmados?", answer: "" }
+                ]
+            },
+            {
+                id: 13, phase: 7, phaseName: "Fase 7: La Cumbre de Logros", title: "Plenitud, Viajes y Sabiduría", icon: "fa-compass-drafting", x: 26, y: -13,
+                desc: "Disfrute de la autorrealización personal, exploración de distintas culturas del mundo y crecimiento interior.",
+                defaultGoal: "Viajar por los 5 continentes y disfrutar de un estado continuo de paz mental.", completed: false, targetDate: "2032-06-30",
+                questions: [
+                    { id: "q13_1", text: "¿Cuáles son las 3 experiencias de viaje o exploración cultural que anhelas vivir?", answer: "" },
+                    { id: "q13_2", text: "¿Qué representa la plenitud espiritual e intelectual en este punto de tu vida?", answer: "" },
+                    { id: "q13_3", text: "¿Qué actividades realizas únicamente por la alegría pura de disfrutarlas?", answer: "" }
+                ]
+            },
+            {
+                id: 14, phase: 7, phaseName: "Fase 7: La Cumbre de Logros", title: "Cumbre de Logros y Legado Perpetuo", icon: "fa-trophy", x: 10, y: -18,
+                desc: "El hito cumbre donde celebras la realización de tus sueños, contemplas el camino recorrido y consolidas tu legado.",
+                defaultGoal: "Alcanzar el 100% de plenitud en mi proyecto de vida y ser recordado con amor y gratitud.", completed: false, targetDate: "2032-12-31",
+                questions: [
+                    { id: "q14_1", text: "Al mirar hacia atrás desde la cumbre de tu vida, ¿cuál es tu mayor motivo de orgullo?", answer: "" },
+                    { id: "q14_2", text: "¿Qué huella imborrable quieres que perdure en tu familia y en la humanidad?", answer: "" },
+                    { id: "q14_3", text: "Si pudieras enviar un mensaje a tu 'yo del pasado' que inició este camino, ¿qué le dirías?", answer: "" }
+                ]
+            }
+        ];
+
+        let currentActiveId = null;
+        let wheelChartInstance = null;
+
+        // User Avatar Selection Handling
+        function selectAvatar(iconClass) {
+            currentUserProfile.avatar = iconClass;
+            document.querySelectorAll('.avatar-option').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.querySelector(`i.${iconClass}`)) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        // Registration & Modal Open/Close Logic
+        function openRegistrationModal(isEdit = false) {
+            const modal = document.getElementById('registration-modal');
+            if (isEdit) {
+                document.getElementById('reg-name').value = currentUserProfile.name || '';
+                document.getElementById('reg-email').value = currentUserProfile.email || '';
+                document.getElementById('reg-motto').value = currentUserProfile.motto || '';
+                document.getElementById('reg-start-date').value = currentUserProfile.startDate || '';
+                selectAvatar(currentUserProfile.avatar || 'fa-user-astronaut');
+            }
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeRegistrationModal() {
+            const modal = document.getElementById('registration-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function handleRegistration(e) {
+            e.preventDefault();
+            currentUserProfile.name = document.getElementById('reg-name').value.trim();
+            currentUserProfile.email = document.getElementById('reg-email').value.trim();
+            currentUserProfile.motto = document.getElementById('reg-motto').value.trim() || "DREAMS • ACTION • GROWTH • LEGACY";
+            currentUserProfile.startDate = document.getElementById('reg-start-date').value || new Date().toISOString().split('T')[0];
+
+            saveUserProfile();
+            applyUserProfileToUI();
+            closeRegistrationModal();
+        }
+
+        function saveUserProfile() {
+            localStorage.setItem('mi_proyecto_vida_user', JSON.stringify(currentUserProfile));
+        }
+
+        function loadUserProfile() {
+            const saved = localStorage.getItem('mi_proyecto_vida_user');
+            if (saved) {
+                try {
+                    currentUserProfile = JSON.parse(saved);
+                    return true;
+                } catch(e) { console.error("Error loading profile", e); }
+            }
+            return false;
+        }
+
+        function applyUserProfileToUI() {
+            if (!currentUserProfile.name) return;
+
+            // Personalize Title and Banner Ribbon
+            document.getElementById('dynamic-title').innerText = `PROYECTO DE VIDA DE ${currentUserProfile.name.toUpperCase()}`;
+            document.getElementById('dynamic-motto').innerText = currentUserProfile.motto.toUpperCase();
+
+            // Personalize Header Badge
+            document.getElementById('badge-user-name').innerText = currentUserProfile.name;
+            document.getElementById('badge-user-email').innerText = currentUserProfile.email;
+            document.getElementById('badge-avatar-icon').innerHTML = `<i class="fa-solid ${currentUserProfile.avatar}"></i>`;
+
+            // Personalize Map Bottom Indicator
+            document.getElementById('map-user-greeting').innerText = `Camino de ${currentUserProfile.name.split(' ')[0]}`;
+            document.getElementById('map-avatar-icon').innerHTML = `<i class="fa-solid ${currentUserProfile.avatar}"></i>`;
+        }
+
+        // Initialize and Load Data from LocalStorage
+        function initData() {
+            const profileLoaded = loadUserProfile();
+            if (!profileLoaded) {
+                openRegistrationModal(false);
+            } else {
+                closeRegistrationModal();
+                applyUserProfileToUI();
+            }
+
+            const savedMilestones = localStorage.getItem('mi_proyecto_vida_milestones');
+            if (savedMilestones) {
+                try {
+                    const parsed = JSON.parse(savedMilestones);
+                    parsed.forEach(savedItem => {
+                        const item = milestonesData.find(m => m.id === savedItem.id);
+                        if (item) {
+                            item.completed = savedItem.completed;
+                            item.defaultGoal = savedItem.defaultGoal;
+                            item.targetDate = savedItem.targetDate;
+                            if (savedItem.questions) {
+                                savedItem.questions.forEach(sq => {
+                                    const q = item.questions.find(q => q.id === sq.id);
+                                    if (q) q.answer = sq.answer;
+                                });
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error("Error loading local storage data", e);
+                }
+            }
+        }
+
+        function saveDataToLocal() {
+            localStorage.setItem('mi_proyecto_vida_milestones', JSON.stringify(milestonesData));
+        }
+
+        // Render Map Nodes dynamically
+        function renderMapNodes(filterPhaseId = 'all') {
+            const container = document.getElementById('nodes-container');
+            container.innerHTML = '';
+
+            let renderedIndex = 0;
+            milestonesData.forEach((item, index) => {
+                if (filterPhaseId !== 'all' && item.phase !== filterPhaseId) return;
+
+                const isCompleted = item.completed;
+                const isNext = !isCompleted && (index === 0 || milestonesData[index - 1].completed);
+
+                const pinWrapper = document.createElement('div');
+                pinWrapper.className = `absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group z-20`;
+                
+                pinWrapper.style.left = `${item.x}%`;
+                const normalizedY = 88 - (index * 6.3);
+                pinWrapper.style.top = `${normalizedY}%`;
+
+                const pin = document.createElement('button');
+                pin.onclick = () => openModal(item.id);
+                
+                let stateClasses = "bg-slate-900 border-2 border-amber-400 text-amber-400";
+                if (isCompleted) {
+                    stateClasses = "completed bg-emerald-600 border-2 border-emerald-300 text-white";
+                } else if (isNext) {
+                    stateClasses = "active-next bg-amber-500 border-2 border-white text-slate-950 font-bold";
+                }
+
+                pin.className = `milestone-pin w-10 h-10 md:w-13 md:h-13 rounded-full flex items-center justify-center text-sm md:text-lg shadow-xl ${stateClasses}`;
+                pin.innerHTML = isCompleted ? `<i class="fa-solid fa-check"></i>` : `<i class="fa-solid ${item.icon}"></i>`;
+
+                const label = document.createElement('div');
+                label.className = `mt-1.5 px-2.5 py-1 rounded-lg text-[10px] md:text-xs font-extrabold whitespace-nowrap shadow-md transition-all border pointer-events-none ${
+                    isCompleted 
+                        ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40' 
+                        : 'glass-card text-slate-100 border-white/20 group-hover:border-amber-400'
+                }`;
+                label.innerHTML = `<span class="text-amber-400 mr-1">${item.id}.</span>${item.title}`;
+
+                pinWrapper.appendChild(pin);
+                pinWrapper.appendChild(label);
+                container.appendChild(pinWrapper);
+                renderedIndex++;
+            });
+
+            updateProgress();
+        }
+
+        // Calculate and Update Overall Progress
+        function updateProgress() {
+            const completedCount = milestonesData.filter(m => m.completed).length;
+            const percentage = Math.round((completedCount / milestonesData.length) * 100);
+            
+            document.getElementById('overall-progress').style.width = `${percentage}%`;
+            document.getElementById('progress-percentage').innerText = `${percentage}%`;
+
+            const statusText = document.getElementById('explorer-status-text');
+            if (completedCount === milestonesData.length) {
+                statusText.innerText = "¡Cumbre Alcanzada! Plenitud Total";
+                statusText.className = "text-xs font-extrabold text-emerald-400 animate-pulse";
+            } else {
+                statusText.innerText = `${completedCount} de 14 Estaciones Completadas`;
+                statusText.className = "text-xs font-extrabold text-amber-400";
+            }
+        }
+
+        // Phase Filtering Logic
+        function filterPhase(phaseId) {
+            document.querySelectorAll('.phase-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-amber-500', 'text-slate-950');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+            event.target.classList.add('active', 'bg-amber-500', 'text-slate-950');
+            event.target.classList.remove('bg-slate-800', 'text-slate-300');
+
+            renderMapNodes(phaseId);
+        }
+
+        // Open Individual Milestone Modal
+        function openModal(id) {
+            currentActiveId = id;
+            const milestone = milestonesData.find(m => m.id === id);
+            if (!milestone) return;
+
+            document.getElementById('modal-step').innerText = `Etapa ${milestone.id} de ${milestonesData.length}`;
+            document.getElementById('modal-title').innerText = milestone.title;
+            document.getElementById('modal-phase-tag').innerText = milestone.phaseName;
+            document.getElementById('modal-desc').innerText = milestone.desc;
+            document.getElementById('modal-icon').className = `fa-solid ${milestone.icon}`;
+            
+            document.getElementById('modal-goal-input').value = milestone.defaultGoal || '';
+            document.getElementById('modal-date-input').value = milestone.targetDate || '';
+
+            // Render Questions
+            const qList = document.getElementById('modal-questions-list');
+            qList.innerHTML = '';
+            let answeredCount = 0;
+
+            milestone.questions.forEach((q, idx) => {
+                if (q.answer && q.answer.trim() !== '') answeredCount++;
+                const qBox = document.createElement('div');
+                qBox.className = 'space-y-1 bg-slate-900/80 p-3 rounded-xl border border-slate-800';
+                qBox.innerHTML = `
+                    <label class="block text-xs font-bold text-amber-200 flex items-center gap-1.5">
+                        <span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 text-[10px] flex items-center justify-center font-bold">${idx + 1}</span>
+                        ${q.text}
+                    </label>
+                    <textarea id="input_${q.id}" rows="2" 
+                           class="w-full bg-slate-950/90 border border-slate-700/80 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400 placeholder-slate-500" 
+                           placeholder="Escribe tu reflexión sincera aquí...">${q.answer || ''}</textarea>
+                `;
+                qList.appendChild(qBox);
+            });
+
+            document.getElementById('modal-question-count').innerText = `${answeredCount}/${milestone.questions.length} respondidas`;
+
+            updateStatusButton(milestone.completed);
+
+            const modal = document.getElementById('milestone-modal');
+            const modalContent = document.getElementById('modal-content');
+            
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function navigateStep(direction) {
+            saveMilestone(false);
+            let nextId = currentActiveId + direction;
+            if (nextId < 1) nextId = milestonesData.length;
+            if (nextId > milestonesData.length) nextId = 1;
+            openModal(nextId);
+        }
+
+        function toggleStatus() {
+            const milestone = milestonesData.find(m => m.id === currentActiveId);
+            if (milestone) {
+                milestone.completed = !milestone.completed;
+                updateStatusButton(milestone.completed);
+            }
+        }
+
+        function updateStatusButton(isCompleted) {
+            const btn = document.getElementById('modal-status-btn');
+            if (isCompleted) {
+                btn.className = "w-full py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/50";
+                btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Etapa Conquistada`;
+            } else {
+                btn.className = "w-full py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-500";
+                btn.innerHTML = `<i class="fa-regular fa-circle text-slate-400"></i> Pendiente`;
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('milestone-modal');
+            const modalContent = document.getElementById('modal-content');
+            
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function saveMilestone(shouldClose = true) {
+            const milestone = milestonesData.find(m => m.id === currentActiveId);
+            if (milestone) {
+                milestone.defaultGoal = document.getElementById('modal-goal-input').value;
+                milestone.targetDate = document.getElementById('modal-date-input').value;
+
+                milestone.questions.forEach(q => {
+                    const input = document.getElementById(`input_${q.id}`);
+                    if (input) q.answer = input.value;
+                });
+
+                saveDataToLocal();
+                renderMapNodes();
+                if (shouldClose) closeModal();
+            }
+        }
+
+        // Global Questionnaire Modal Logic
+        function openQuestionnaireModal() {
+            const qBody = document.getElementById('questionnaire-body');
+            qBody.innerHTML = '';
+
+            milestonesData.forEach(item => {
+                const section = document.createElement('div');
+                section.className = 'glass-card-light rounded-2xl p-4 border border-white/10 space-y-3';
+
+                let questionsHtml = '';
+                item.questions.forEach((q, idx) => {
+                    questionsHtml += `
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold text-amber-300">${idx + 1}. ${q.text}</label>
+                            <textarea id="g_input_${q.id}" rows="2" 
+                                class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber-400 placeholder-slate-500" 
+                                placeholder="Tu respuesta inspiradora...">${q.answer || ''}</textarea>
+                        </div>
+                    `;
+                });
+
+                section.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                        <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                            <i class="fa-solid ${item.icon}"></i> ${item.id}. ${item.title}
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase">${item.phaseName}</span>
+                    </div>
+                    ${questionsHtml}
+                `;
+
+                qBody.appendChild(section);
+            });
+
+            const modal = document.getElementById('questionnaire-modal');
+            const modalContent = document.getElementById('questionnaire-content');
+            
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeQuestionnaireModal() {
+            const modal = document.getElementById('questionnaire-modal');
+            const modalContent = document.getElementById('questionnaire-content');
+            
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function saveAllQuestionnaireAnswers() {
+            milestonesData.forEach(item => {
+                item.questions.forEach(q => {
+                    const input = document.getElementById(`g_input_${q.id}`);
+                    if (input) q.answer = input.value;
+                });
+            });
+            saveDataToLocal();
+            renderMapNodes();
+            closeQuestionnaireModal();
+        }
+
+        // Tools Modal (Rueda de la Vida & Ikigai)
+        function openModalTab(tabName) {
+            const modal = document.getElementById('tools-modal');
+            const modalContent = document.getElementById('tools-content');
+            
+            switchToolsTab(tabName);
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+
+            setTimeout(() => {
+                if (!wheelChartInstance) initWheelChart();
+            }, 100);
+        }
+
+        function closeToolsModal() {
+            const modal = document.getElementById('tools-modal');
+            const modalContent = document.getElementById('tools-content');
+            
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function switchToolsTab(tabName) {
+            const tabRueda = document.getElementById('tab-btn-rueda');
+            const tabIkigai = document.getElementById('tab-btn-ikigai');
+            const contentRueda = document.getElementById('tab-content-rueda');
+            const contentIkigai = document.getElementById('tab-content-ikigai');
+
+            if (tabName === 'rueda') {
+                tabRueda.className = "px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-amber-500 text-slate-950 shadow-md";
+                tabIkigai.className = "px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-slate-800 text-slate-300 hover:bg-slate-700";
+                contentRueda.classList.remove('hidden');
+                contentIkigai.classList.add('hidden');
+            } else {
+                tabIkigai.className = "px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-rose-500 text-slate-950 shadow-md";
+                tabRueda.className = "px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-slate-800 text-slate-300 hover:bg-slate-700";
+                contentIkigai.classList.remove('hidden');
+                contentRueda.classList.add('hidden');
+            }
+        }
+
+        // Radar Chart for Wheel of Life
+        function initWheelChart() {
+            const ctx = document.getElementById('wheelChart').getContext('2d');
+            wheelChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Salud', 'Carrera', 'Finanzas', 'Relaciones', 'Desarrollo', 'Espiritualidad'],
+                    datasets: [{
+                        label: 'Nivel de Satisfacción',
+                        data: [
+                            parseInt(document.getElementById('range-salud').value),
+                            parseInt(document.getElementById('range-carrera').value),
+                            parseInt(document.getElementById('range-finanzas').value),
+                            parseInt(document.getElementById('range-relaciones').value),
+                            parseInt(document.getElementById('range-desarrollo').value),
+                            parseInt(document.getElementById('range-espiritual').value)
+                        ],
+                        backgroundColor: 'rgba(245, 158, 11, 0.3)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#fbbf24'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 10,
+                            ticks: { display: false },
+                            grid: { color: 'rgba(255, 255, 255, 0.15)' },
+                            angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
+                            pointLabels: { color: '#f8fafc', font: { size: 10, weight: 'bold' } }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateWheel() {
+            const salud = document.getElementById('range-salud').value;
+            const carrera = document.getElementById('range-carrera').value;
+            const finanzas = document.getElementById('range-finanzas').value;
+            const relaciones = document.getElementById('range-relaciones').value;
+            const desarrollo = document.getElementById('range-desarrollo').value;
+            const espiritual = document.getElementById('range-espiritual').value;
+
+            document.getElementById('val-salud').innerText = `${salud}/10`;
+            document.getElementById('val-carrera').innerText = `${carrera}/10`;
+            document.getElementById('val-finanzas').innerText = `${finanzas}/10`;
+            document.getElementById('val-relaciones').innerText = `${relaciones}/10`;
+            document.getElementById('val-desarrollo').innerText = `${desarrollo}/10`;
+            document.getElementById('val-espiritual').innerText = `${espiritual}/10`;
+
+            if (wheelChartInstance) {
+                wheelChartInstance.data.datasets[0].data = [salud, carrera, finanzas, relaciones, desarrollo, espiritual];
+                wheelChartInstance.update();
+            }
+        }
+
+        function saveToolsData() {
+            const toolsData = {
+                rueda: {
+                    salud: document.getElementById('range-salud').value,
+                    carrera: document.getElementById('range-carrera').value,
+                    finanzas: document.getElementById('range-finanzas').value,
+                    relaciones: document.getElementById('range-relaciones').value,
+                    desarrollo: document.getElementById('range-desarrollo').value,
+                    espiritual: document.getElementById('range-espiritual').value,
+                },
+                ikigai: {
+                    amas: document.getElementById('ikigai-lo-que-amas').value,
+                    talentos: document.getElementById('ikigai-talentos').value,
+                    mundo: document.getElementById('ikigai-mundo').value,
+                    profesion: document.getElementById('ikigai-profesion').value,
+                }
+            };
+            localStorage.setItem('mi_proyecto_vida_tools', JSON.stringify(toolsData));
+            closeToolsModal();
+        }
+
+        function exportToPrint() {
+            window.print();
+        }
+
+        // Initialize App on DOM Load
+        window.addEventListener('DOMContentLoaded', () => {
+            initData();
+            renderMapNodes();
+
+            // Restore Tools Data
+            const savedTools = localStorage.getItem('mi_proyecto_vida_tools');
+            if (savedTools) {
+                try {
+                    const parsed = JSON.parse(savedTools);
+                    if (parsed.rueda) {
+                        document.getElementById('range-salud').value = parsed.rueda.salud || 7;
+                        document.getElementById('range-carrera').value = parsed.rueda.carrera || 8;
+                        document.getElementById('range-finanzas').value = parsed.rueda.finanzas || 6;
+                        document.getElementById('range-relaciones').value = parsed.rueda.relaciones || 8;
+                        document.getElementById('range-desarrollo').value = parsed.rueda.desarrollo || 9;
+                        document.getElementById('range-espiritual').value = parsed.rueda.espiritual || 7;
+                        updateWheel();
+                    }
+                    if (parsed.ikigai) {
+                        document.getElementById('ikigai-lo-que-amas').value = parsed.ikigai.amas || '';
+                        document.getElementById('ikigai-talentos').value = parsed.ikigai.talentos || '';
+                        document.getElementById('ikigai-mundo').value = parsed.ikigai.mundo || '';
+                        document.getElementById('ikigai-profesion').value = parsed.ikigai.profesion || '';
+                    }
+                } catch(e){}
+            }
+        });
+    </script>
+</body>
+</html>
